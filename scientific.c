@@ -22,9 +22,12 @@ Numeric PI;
 static Numeric ln10;
 static Numeric e;
 static Numeric E;
-static Udbyte eTable[CALSTACK_FIXED_POINT] = {71828,18284,59045,23536,2874,71352,66249,77572,47093,69995,95749,66967,};
-static Udbyte ln10Table[CALSTACK_FIXED_POINT] = {30258,50929,94045,68401,79914,54684,36420,76011,1488,62877,29760,33327,} ;
-static Udbyte PItable[CALSTACK_FIXED_POINT] = {14159, 26535, 89793, 23846, 26433, 83279, 50288, 41971, 69399, 37510, 58209, 74945,};
+static Udbyte eTable[CALSTACK_FIXED_POINT] = {71828, 18284, 59045, 23536, 2874, 71352, 66249, 77572, 47093, 69995,
+                                              95749, 66967,};
+static Udbyte ln10Table[CALSTACK_FIXED_POINT] = {30258, 50929, 94045, 68401, 79914, 54684, 36420, 76011, 1488, 62877,
+                                                 29760, 33327,};
+static Udbyte PItable[CALSTACK_FIXED_POINT] = {14159, 26535, 89793, 23846, 26433, 83279, 50288, 41971, 69399, 37510,
+                                               58209, 74945,};
 static Numeric ConstTable[50];
 static Numeric fact[50];
 static Udbyte factable[][50] = {
@@ -98,17 +101,17 @@ void global_table_init(void) {
     ten.data[0] = 10;
     tenth.fraction[0] = 10000;
     E.fraction[6] = 1;
-    ln10.data[0]=2;
-    PI.data[0]=3;
-    e.data[0]=2;
-    for (int i=0;i<CALSTACK_FIXED_POINT;i++){
-         PI.fraction[i]=PItable[i];
+    ln10.data[0] = 2;
+    PI.data[0] = 3;
+    e.data[0] = 2;
+    for (int i = 0; i < CALSTACK_FIXED_POINT; i++) {
+        PI.fraction[i] = PItable[i];
     }
-    for (int i=0;i<CALSTACK_FIXED_POINT;i++){
-        ln10.fraction[i]=ln10Table[i];
+    for (int i = 0; i < CALSTACK_FIXED_POINT; i++) {
+        ln10.fraction[i] = ln10Table[i];
     }
-    for (int i=0;i<CALSTACK_FIXED_POINT;i++){
-        e.fraction[i]=eTable[i];
+    for (int i = 0; i < CALSTACK_FIXED_POINT; i++) {
+        e.fraction[i] = eTable[i];
     }
     for (Udbyte i = 0; i < 50; i++) {
         Numeric_new(&ConstTable[i]);
@@ -132,41 +135,41 @@ Numeric *Numeric_abs(const Numeric *x) {
 Numeric *Numeric_sqrt(const Numeric *x) {
     if (Numeric_greater_eq(x, &zero)) {
         /* Estimation */
-        Numeric * x0=malloc(sizeof(Numeric));
+        Numeric *x0 = malloc(sizeof(Numeric));
         Numeric_new(x0);
-        Numeric_assign(x0,x);
-        if(x->nbytes){
-            Udbyte n,digit;
-            digit = x->data[(x->nbytes)-1];
-            for(n=0;digit;n++){
-                digit/=10;
+        Numeric_assign(x0, x);
+        if (x->nbytes) {
+            Udbyte n, digit;
+            digit = x->data[(x->nbytes) - 1];
+            for (n = 0; digit; n++) {
+                digit /= 10;
             }
-            Numeric * tmp;
-            for(int i=0;i<(n+CALSTACK_UDBYTE_LENGTH*((x->nbytes)-1))/2;i++){
-                Numeric_assign(x0,tmp=Numeric_mult(x0,&ten));
+            Numeric *tmp;
+            for (int i = 0; i < (n + CALSTACK_UDBYTE_LENGTH * ((x->nbytes) - 1)) / 2; i++) {
+                Numeric_assign(x0, tmp = Numeric_mult(x0, &ten));
                 Numeric_free_ptr(tmp);
             }
-        }else{
-            Udbyte n,digit,i,j;
-            for(i=0 ;;i++){
-                if(x->fraction[i]){
+        } else {
+            Udbyte n, digit, i, j;
+            for (i = 0;; i++) {
+                if (x->fraction[i]) {
                     digit = x->fraction[i];
                     break;
                 }
             }
-            for(n=0;digit;n++){
-                digit/=10;
+            for (n = 0; digit; n++) {
+                digit /= 10;
             }
-            n = CALSTACK_UDBYTE_LENGTH-n;
-            Numeric * tmp;
-            for(j=0;j<(n+i)/2;j++){
-                Numeric_assign(x0,tmp=Numeric_mult(x0,&ten));
+            n = CALSTACK_UDBYTE_LENGTH - n;
+            Numeric *tmp;
+            for (j = 0; j < (n + i) / 2; j++) {
+                Numeric_assign(x0, tmp = Numeric_mult(x0, &ten));
                 Numeric_free_ptr(tmp);
             }
         }
         /* Calculation */
-        while(Numeric_greater(Numeric_abs(Numeric_sub(Numeric_mult(x0,x0),x)),&E)){
-            Numeric_assign(x0,Numeric_div(Numeric_add(x0,Numeric_div(x,x0)),&two));
+        while (Numeric_greater(Numeric_abs(Numeric_sub(Numeric_mult(x0, x0), x)), &E)) {
+            Numeric_assign(x0, Numeric_div(Numeric_add(x0, Numeric_div(x, x0)), &two));
         }
         return x0;
     } else {
@@ -199,6 +202,7 @@ Numeric *Numeric_fact(const Numeric *x) {
 }
 
 #define SCIENTIFIC_EXP_ITERATE 49
+
 Numeric *Numeric_exp(const Numeric *x) {
     Numeric *x0 = malloc(sizeof(Numeric));
     Numeric_new(x0);
@@ -210,9 +214,9 @@ Numeric *Numeric_exp(const Numeric *x) {
     Numeric *n = malloc(sizeof(Numeric));
     Numeric_new(n);
     if (x->nbytes) {
-        Numeric_assign(n,x0);
-        memset(n->fraction,0,sizeof(Udbyte)*CALSTACK_FIXED_POINT);
-        Numeric_assign(x0,Numeric_sub(x0,n));
+        Numeric_assign(n, x0);
+        memset(n->fraction, 0, sizeof(Udbyte) * CALSTACK_FIXED_POINT);
+        Numeric_assign(x0, Numeric_sub(x0, n));
     }
     /* Taylor */
     Numeric *result = malloc(sizeof(Numeric));
@@ -223,17 +227,17 @@ Numeric *Numeric_exp(const Numeric *x) {
     Numeric_assign(power, x0);
     Numeric *tmp1, *tmp2;
     for (int i = 0; i < SCIENTIFIC_EXP_ITERATE; i++) {
-        result = Numeric_add(tmp1 = result, tmp2 = Numeric_div(power, &fact[i+1]));
+        result = Numeric_add(tmp1 = result, tmp2 = Numeric_div(power, &fact[i + 1]));
         Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2);
         power = Numeric_mult(tmp1 = power, x0);
         Numeric_free_ptr(tmp1);
     }
     Numeric_free_ptr(power);
     /* Adjustment */
-    Numeric_assign(result,Numeric_mult(result,Numeric_pow(&e,n)));
+    Numeric_assign(result, Numeric_mult(result, Numeric_pow(&e, n)));
     if (x->sign == NEG) {
         Numeric_assign(result, Numeric_div(&one, result));
-        result = Numeric_div(&one, tmp1=result);
+        result = Numeric_div(&one, tmp1 = result);
         Numeric_free_ptr(tmp1);
     }
     Numeric_free_ptr(x0);
@@ -241,6 +245,7 @@ Numeric *Numeric_exp(const Numeric *x) {
 }
 
 #define SCIENTIFIC_LN_ITERATE 50
+
 Numeric *Numeric_ln(const Numeric *x) {
     if (x->sign == POS) {
         /* Scale shrinking */
@@ -248,26 +253,26 @@ Numeric *Numeric_ln(const Numeric *x) {
         Numeric_new(N);
         Numeric *x0 = malloc(sizeof(Numeric));
         Numeric_new(x0);
-        if(Numeric_less(x,&one)){
-            Numeric_assign(x0,Numeric_div(&one,x));
-        }else{
-            Numeric_assign(x0,x);
-            Udbyte digit,n;
-            digit=x->data[(x->nbytes)-1];
-            for(n=0;digit;n++){
-                digit/=10;
+        if (Numeric_less(x, &one)) {
+            Numeric_assign(x0, Numeric_div(&one, x));
+        } else {
+            Numeric_assign(x0, x);
+            Udbyte digit, n;
+            digit = x->data[(x->nbytes) - 1];
+            for (n = 0; digit; n++) {
+                digit /= 10;
             }
             Numeric *tmp;
-            for(int i=1;i<n+CALSTACK_UDBYTE_LENGTH*((x->nbytes)-1);i++){
-                Numeric_assign(x0,tmp=Numeric_mult(x0,&tenth));
+            for (int i = 1; i < n + CALSTACK_UDBYTE_LENGTH * ((x->nbytes) - 1); i++) {
+                Numeric_assign(x0, tmp = Numeric_mult(x0, &tenth));
                 Numeric_free_ptr(tmp);
-                Numeric_assign(N,tmp=Numeric_add(N,&one));
+                Numeric_assign(N, tmp = Numeric_add(N, &one));
                 Numeric_free_ptr(tmp);
             }
         }
         Numeric *tmp;
-        for(int i=0;i<5;i++){
-            Numeric_assign(x0,tmp=Numeric_sqrt(x0));
+        for (int i = 0; i < 5; i++) {
+            Numeric_assign(x0, tmp = Numeric_sqrt(x0));
             Numeric_free_ptr(tmp);
         }
         /* Taylor */
@@ -292,12 +297,12 @@ Numeric *Numeric_ln(const Numeric *x) {
             ++den->data[0];
         }
         /* Adjustment */
-        for(int i=0;i<5;i++){
-            Numeric_assign(result,tmp=Numeric_mult(result,&two));
+        for (int i = 0; i < 5; i++) {
+            Numeric_assign(result, tmp = Numeric_mult(result, &two));
             Numeric_free_ptr(tmp);
         }
-        result = Numeric_add(result,Numeric_mult(N,&ln10));
-        if(Numeric_less(x,&one)){
+        result = Numeric_add(result, Numeric_mult(N, &ln10));
+        if (Numeric_less(x, &one)) {
             Numeric_neg(result);
         }
         return result;
@@ -317,7 +322,7 @@ Numeric *Numeric_pow(const Numeric *base, const Numeric *power) {
         result = Numeric_exp(NewPower);
         Numeric_free_ptr(NewPower);
     }
-    /* Fast Modular Exponentiation */
+        /* Fast Modular Exponentiation */
     else {
         /* Initialization */
         Numeric_assign(result, &one);
@@ -345,25 +350,25 @@ Numeric *Numeric_pow(const Numeric *base, const Numeric *power) {
 
 Numeric *Numeric_log(const Numeric *base, const Numeric *oper) {
     /* Change base */
-    Numeric *tmp1,*tmp2;
-    Numeric *result = Numeric_div(tmp1=Numeric_ln(oper), tmp2=Numeric_ln(base));
-    Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2);
+    Numeric *tmp1, *tmp2;
+    Numeric *result = Numeric_div(tmp1 = Numeric_ln(oper), tmp2 = Numeric_ln(base));
+    Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2);
     return result;
 }
 
 Numeric *Numeric_lg(const Numeric *x) {
     /* Change base */
-    Numeric *tmp1,*tmp2;
-    Numeric* result = Numeric_div(tmp1=Numeric_ln(x), tmp2=Numeric_ln(&ten));
-    Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2);
+    Numeric *tmp1, *tmp2;
+    Numeric *result = Numeric_div(tmp1 = Numeric_ln(x), tmp2 = Numeric_ln(&ten));
+    Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2);
     return result;
 }
 
 Numeric *Numeric_log2(const Numeric *x) {
     /* Change base */
-    Numeric *tmp1,*tmp2;
-    Numeric* result = Numeric_div(tmp1=Numeric_ln(x), tmp2=Numeric_ln(&two));
-    Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2);
+    Numeric *tmp1, *tmp2;
+    Numeric *result = Numeric_div(tmp1 = Numeric_ln(x), tmp2 = Numeric_ln(&two));
+    Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2);
     return result;
 }
 
@@ -455,22 +460,23 @@ Numeric *Numeric_coth(const Numeric *x) {
 }
 
 #define SCIENTIFIC_SIN_ITERATE 25
+
 Numeric *Numeric_sin(const Numeric *x) {
     /* Initialization */
     Numeric *x0 = malloc(sizeof(Numeric));
     Numeric_new(x0);
-    Numeric_assign(x0,x);
+    Numeric_assign(x0, x);
     /* Scale shrinking */
     Numeric *n = malloc(sizeof(Numeric));
     Numeric_new(n);
-    Numeric_assign(x0,Numeric_div(x0,&PI));
-    Numeric_assign(n,x0);
-    memset(n->fraction,0,sizeof(Udbyte)*CALSTACK_FIXED_POINT);
-    Numeric_assign(x0,Numeric_sub(x0,n));
-    if(Numeric_greater(Numeric_mult(x0,&two),&one)){
-        Numeric_assign(x0,Numeric_sub(&one,x0));
+    Numeric_assign(x0, Numeric_div(x0, &PI));
+    Numeric_assign(n, x0);
+    memset(n->fraction, 0, sizeof(Udbyte) * CALSTACK_FIXED_POINT);
+    Numeric_assign(x0, Numeric_sub(x0, n));
+    if (Numeric_greater(Numeric_mult(x0, &two), &one)) {
+        Numeric_assign(x0, Numeric_sub(&one, x0));
     }
-    Numeric_assign(x0,Numeric_mult(x0,&PI));
+    Numeric_assign(x0, Numeric_mult(x0, &PI));
     /* Taylor */
     Numeric *tmp1, *tmp2 = malloc(sizeof(Numeric));
     Numeric_new(tmp2);
@@ -491,31 +497,32 @@ Numeric *Numeric_sin(const Numeric *x) {
         Numeric_free(tmp1);
     }
     /* Adjustment */
-    if(Numeric_mod2(*n)){
+    if (Numeric_mod2(*n)) {
         Numeric_neg(result);
     }
     return result;
 }
 
 #define SCIENTIFIC_COS_ITERATE 25
+
 Numeric *Numeric_cos(const Numeric *x) {
     /* Initialization */
     Numeric *x0 = malloc(sizeof(Numeric));
     Numeric_new(x0);
-    Numeric_assign(x0,x);
+    Numeric_assign(x0, x);
     /* Scale shrinking */
     Numeric *n = malloc(sizeof(Numeric));
     Numeric_new(n);
-    Numeric_assign(x0,Numeric_div(x0,&PI));
-    Numeric_assign(n,x0);
-    memset(n->fraction,0,sizeof(Udbyte)*CALSTACK_FIXED_POINT);
-    Numeric_assign(x0,Numeric_sub(x0,n));
-    bool isNeg=0;
-    if(Numeric_greater(Numeric_mult(x0,&two),&one)){
-        Numeric_assign(x0,Numeric_sub(&one,x0));
-        isNeg=1;
+    Numeric_assign(x0, Numeric_div(x0, &PI));
+    Numeric_assign(n, x0);
+    memset(n->fraction, 0, sizeof(Udbyte) * CALSTACK_FIXED_POINT);
+    Numeric_assign(x0, Numeric_sub(x0, n));
+    bool isNeg = 0;
+    if (Numeric_greater(Numeric_mult(x0, &two), &one)) {
+        Numeric_assign(x0, Numeric_sub(&one, x0));
+        isNeg = 1;
     }
-    Numeric_assign(x0,Numeric_mult(x0,&PI));
+    Numeric_assign(x0, Numeric_mult(x0, &PI));
     /* Taylor */
     Numeric *tmp1, *tmp2 = malloc(sizeof(Numeric));
     Numeric_new(tmp2);
@@ -528,7 +535,7 @@ Numeric *Numeric_cos(const Numeric *x) {
     Numeric_free_ptr(tmp1);
     for (int64 i = 0; i < SCIENTIFIC_COS_ITERATE; i++) {
         Numeric_free_ptr(tmp2);
-        tmp1 = Numeric_div(pw, &fact[i * 2 ]);
+        tmp1 = Numeric_div(pw, &fact[i * 2]);
         Numeric *(*oper)(const Numeric *, const Numeric *) = i % 2 ? Numeric_sub : Numeric_add;
         result = oper(tmp2 = result, tmp1);
         Numeric_free_ptr(tmp1);
@@ -536,10 +543,10 @@ Numeric *Numeric_cos(const Numeric *x) {
         Numeric_free(tmp1);
     }
     /* Adjustment */
-    if(Numeric_mod2(*n)){
+    if (Numeric_mod2(*n)) {
         Numeric_neg(result);
     }
-    if(isNeg){
+    if (isNeg) {
         Numeric_neg(result);
     }
     return result;
@@ -582,74 +589,83 @@ Numeric *Numeric_cot(const Numeric *x) {
 }
 
 Numeric *Numeric_arcsin(const Numeric *x) {
-    if(Numeric_less(Numeric_abs(x),&one)){
-            /* Initialization */
-            Numeric *result = malloc(sizeof(Numeric));
-            Numeric_new(result);
-            Numeric *y = Numeric_abs(x);
-            Numeric *angle = malloc(sizeof(Numeric));
-            Numeric_new(angle);
-            Numeric_assign(angle,&one);
-            Numeric *x0 = malloc(sizeof(Numeric));
-            Numeric_new(x0);
-            Numeric_assign(x0,&one);
-            Numeric *y0 = malloc(sizeof(Numeric));
-            Numeric_new(y0);
-            Numeric *x1 = malloc(sizeof(Numeric));
-            Numeric_new(x1);
-            Numeric *y1 = malloc(sizeof(Numeric));
-            Numeric_new(y1);
-            /* Calculation */
-            while(Numeric_greater(Numeric_abs(Numeric_sub(y1,y)),&E)){
-                Numeric *tmp1,*tmp2,*tmp3,*tmp4,*tmp5;
-                if(Numeric_less(y1,y)){
-                    Numeric_assign(x1,tmp5=Numeric_sub(tmp3=Numeric_mult(x0,tmp1=Numeric_cos(angle)),tmp4=Numeric_mult(y0,tmp2=Numeric_sin(angle))));
-                    Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-                    Numeric_assign(y1,tmp5=Numeric_add(tmp3=Numeric_mult(x0,tmp1=Numeric_sin(angle)),tmp4=Numeric_mult(y0,tmp2=Numeric_cos(angle))));
-                    Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-                    Numeric_assign(x0,x1);
-                    Numeric_assign(y0,y1);
-                    Numeric_assign(result,Numeric_add(result,angle));
-                }else{
-                    Numeric_assign(x1,tmp5=Numeric_add(tmp3=Numeric_mult(x0,tmp1=Numeric_cos(angle)),tmp4=Numeric_mult(y0,tmp2=Numeric_sin(angle))));
-                    Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-                    Numeric_assign(y1,tmp5=Numeric_sub(tmp3=Numeric_mult(y0,tmp1=Numeric_cos(angle)),tmp4=Numeric_mult(x0,tmp2=Numeric_sin(angle))));
-                    Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-                    Numeric_assign(x0,x1);
-                    Numeric_assign(y0,y1);
-                    Numeric_assign(result,Numeric_sub(result,angle));
-                }
+    if (Numeric_less(Numeric_abs(x), &one)) {
+        /* Initialization */
 
-                Numeric_assign(angle,Numeric_div(angle,&two));
+        Numeric *result = malloc(sizeof(Numeric));
+        Numeric_new(result);
+        Numeric *y = Numeric_abs(x);
+        Numeric *angle = malloc(sizeof(Numeric));
+        Numeric_new(angle);
+        Numeric_assign(angle, &one);
+        Numeric *x0 = malloc(sizeof(Numeric));
+        Numeric_new(x0);
+        Numeric_assign(x0, &one);
+        Numeric *y0 = malloc(sizeof(Numeric));
+        Numeric_new(y0);
+        Numeric *x1 = malloc(sizeof(Numeric));
+        Numeric_new(x1);
+        Numeric *y1 = malloc(sizeof(Numeric));
+        Numeric_new(y1);
+        /* Calculation */
+        while (Numeric_greater(Numeric_abs(Numeric_sub(y1, y)), &E)) {
+            Numeric *tmp1, *tmp2, *tmp3, *tmp4, *tmp5;
+            if (Numeric_less(y1, y)) {
+                Numeric_assign(x1, tmp5 = Numeric_sub(tmp3 = Numeric_mult(x0, tmp1 = Numeric_cos(angle)),
+                                                      tmp4 = Numeric_mult(y0, tmp2 = Numeric_sin(angle))));
+                Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                        tmp4), Numeric_free_ptr(tmp5);
+                Numeric_assign(y1, tmp5 = Numeric_add(tmp3 = Numeric_mult(x0, tmp1 = Numeric_sin(angle)),
+                                                      tmp4 = Numeric_mult(y0, tmp2 = Numeric_cos(angle))));
+                Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                        tmp4), Numeric_free_ptr(tmp5);
+                Numeric_assign(x0, x1);
+                Numeric_assign(y0, y1);
+                Numeric_assign(result, Numeric_add(result, angle));
+            } else {
+                Numeric_assign(x1, tmp5 = Numeric_add(tmp3 = Numeric_mult(x0, tmp1 = Numeric_cos(angle)),
+                                                      tmp4 = Numeric_mult(y0, tmp2 = Numeric_sin(angle))));
+                Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                        tmp4), Numeric_free_ptr(tmp5);
+                Numeric_assign(y1, tmp5 = Numeric_sub(tmp3 = Numeric_mult(y0, tmp1 = Numeric_cos(angle)),
+                                                      tmp4 = Numeric_mult(x0, tmp2 = Numeric_sin(angle))));
+                Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                        tmp4), Numeric_free_ptr(tmp5);
+                Numeric_assign(x0, x1);
+                Numeric_assign(y0, y1);
+                Numeric_assign(result, Numeric_sub(result, angle));
             }
-            /* Adjustment */
+
+            Numeric_assign(angle, Numeric_div(angle, &two));
+        }
+        /* Adjustment */
         Numeric_free_ptr(y);
         Numeric_free_ptr(x0);
         Numeric_free_ptr(y0);
         Numeric_free_ptr(x1);
         Numeric_free_ptr(y1);
         Numeric_free_ptr(angle);
-        if(x->sign==NEG){
+        if (x->sign == NEG) {
             Numeric_neg(result);
         }
         return result;
-    }else if(Numeric_eq(Numeric_abs(x),&one)){
-        Numeric *result = Numeric_div(&PI,&two);
-        if(x->sign==NEG){
+    } else if (Numeric_eq(Numeric_abs(x), &one)) {
+        Numeric *result = Numeric_div(&PI, &two);
+        if (x->sign == NEG) {
             Numeric_neg(result);
         }
         return result;
-    }else{
+    } else {
         fprintf(stderr, "arcsin(x) error");
         exit(1);
     }
 }
 
 Numeric *Numeric_arccos(const Numeric *x) {
-    if(Numeric_less_eq(Numeric_abs(x),&one)){
-        Numeric *result = Numeric_sub(Numeric_div(&PI,&two),Numeric_arcsin(x));
+    if (Numeric_less_eq(Numeric_abs(x), &one)) {
+        Numeric *result = Numeric_sub(Numeric_div(&PI, &two), Numeric_arcsin(x));
         return result;
-    }else{
+    } else {
         fprintf(stderr, "arcsin(x) error");
         exit(1);
     }
@@ -662,36 +678,44 @@ Numeric *Numeric_arctan(const Numeric *x) {
     Numeric *n = Numeric_abs(x);
     Numeric *angle = malloc(sizeof(Numeric));
     Numeric_new(angle);
-    Numeric_assign(angle,&one);
-    Numeric *x0 = Numeric_sqrt(Numeric_div(&one,Numeric_add(Numeric_mult(n,n),&one)));
-    Numeric *y0 = Numeric_sqrt(Numeric_sub(&one,Numeric_mult(x0,x0)));
+    Numeric_assign(angle, &one);
+    Numeric *x0 = Numeric_sqrt(Numeric_div(&one, Numeric_add(Numeric_mult(n, n), &one)));
+    Numeric *y0 = Numeric_sqrt(Numeric_sub(&one, Numeric_mult(x0, x0)));
     Numeric *x1 = malloc(sizeof(Numeric));
     Numeric_new(x1);
-    Numeric_assign(x1,x0);
+    Numeric_assign(x1, x0);
     Numeric *y1 = malloc(sizeof(Numeric));
     Numeric_new(y1);
-    Numeric_assign(y1,y0);
+    Numeric_assign(y1, y0);
     /* Calculation */
-    while(Numeric_greater(Numeric_abs(y1),&E)){
-        Numeric *tmp1,*tmp2,*tmp3,*tmp4,*tmp5;
-        if(Numeric_less(y1,&zero)){
-            Numeric_assign(x1,tmp5=Numeric_sub(tmp3=Numeric_mult(x0,tmp1=Numeric_cos(angle)),tmp4=Numeric_mult(y0,tmp2=Numeric_sin(angle))));
-            Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-            Numeric_assign(y1,tmp5=Numeric_add(tmp3=Numeric_mult(x0,tmp1=Numeric_sin(angle)),tmp4=Numeric_mult(y0,tmp2=Numeric_cos(angle))));
-            Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-            Numeric_assign(x0,x1);
-            Numeric_assign(y0,y1);
-            Numeric_assign(result,Numeric_sub(result,angle));
-        }else{
-            Numeric_assign(x1,tmp5=Numeric_add(tmp3=Numeric_mult(x0,tmp1=Numeric_cos(angle)),tmp4=Numeric_mult(y0,tmp2=Numeric_sin(angle))));
-            Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-            Numeric_assign(y1,tmp5=Numeric_sub(tmp3=Numeric_mult(y0,tmp1=Numeric_cos(angle)),tmp4=Numeric_mult(x0,tmp2=Numeric_sin(angle))));
-            Numeric_free_ptr(tmp1),Numeric_free_ptr(tmp2),Numeric_free_ptr(tmp3),Numeric_free_ptr(tmp4),Numeric_free_ptr(tmp5);
-            Numeric_assign(x0,x1);
-            Numeric_assign(y0,y1);
-            Numeric_assign(result,Numeric_add(result,angle));
+    while (Numeric_greater(Numeric_abs(y1), &E)) {
+        Numeric *tmp1, *tmp2, *tmp3, *tmp4, *tmp5;
+        if (Numeric_less(y1, &zero)) {
+            Numeric_assign(x1, tmp5 = Numeric_sub(tmp3 = Numeric_mult(x0, tmp1 = Numeric_cos(angle)),
+                                                  tmp4 = Numeric_mult(y0, tmp2 = Numeric_sin(angle))));
+            Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                    tmp4), Numeric_free_ptr(tmp5);
+            Numeric_assign(y1, tmp5 = Numeric_add(tmp3 = Numeric_mult(x0, tmp1 = Numeric_sin(angle)),
+                                                  tmp4 = Numeric_mult(y0, tmp2 = Numeric_cos(angle))));
+            Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                    tmp4), Numeric_free_ptr(tmp5);
+            Numeric_assign(x0, x1);
+            Numeric_assign(y0, y1);
+            Numeric_assign(result, Numeric_sub(result, angle));
+        } else {
+            Numeric_assign(x1, tmp5 = Numeric_add(tmp3 = Numeric_mult(x0, tmp1 = Numeric_cos(angle)),
+                                                  tmp4 = Numeric_mult(y0, tmp2 = Numeric_sin(angle))));
+            Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                    tmp4), Numeric_free_ptr(tmp5);
+            Numeric_assign(y1, tmp5 = Numeric_sub(tmp3 = Numeric_mult(y0, tmp1 = Numeric_cos(angle)),
+                                                  tmp4 = Numeric_mult(x0, tmp2 = Numeric_sin(angle))));
+            Numeric_free_ptr(tmp1), Numeric_free_ptr(tmp2), Numeric_free_ptr(tmp3), Numeric_free_ptr(
+                    tmp4), Numeric_free_ptr(tmp5);
+            Numeric_assign(x0, x1);
+            Numeric_assign(y0, y1);
+            Numeric_assign(result, Numeric_add(result, angle));
         }
-        Numeric_assign(angle,Numeric_div(angle,&two));
+        Numeric_assign(angle, Numeric_div(angle, &two));
     }
     /* Adjustment */
     Numeric_free_ptr(n);
@@ -700,7 +724,7 @@ Numeric *Numeric_arctan(const Numeric *x) {
     Numeric_free_ptr(x1);
     Numeric_free_ptr(y1);
     Numeric_free_ptr(angle);
-    if(x->sign==NEG){
+    if (x->sign == NEG) {
         Numeric_neg(result);
     }
     return result;
@@ -708,21 +732,21 @@ Numeric *Numeric_arctan(const Numeric *x) {
 
 Numeric *Numeric_arcsec(const Numeric *x) {
     Numeric *tmp;
-    Numeric *result = Numeric_arccos(tmp=Numeric_div(&one,x));
+    Numeric *result = Numeric_arccos(tmp = Numeric_div(&one, x));
     Numeric_free_ptr(tmp);
     return result;
 }
 
 Numeric *Numeric_arccsc(const Numeric *x) {
     Numeric *tmp;
-    Numeric *result = Numeric_arcsin(tmp=Numeric_div(&one,x));
+    Numeric *result = Numeric_arcsin(tmp = Numeric_div(&one, x));
     Numeric_free_ptr(tmp);
     return result;
 }
 
 Numeric *Numeric_arccot(const Numeric *x) {
     Numeric *tmp;
-    Numeric *result = Numeric_arctan(tmp=Numeric_div(&one,x));
+    Numeric *result = Numeric_arctan(tmp = Numeric_div(&one, x));
     Numeric_free_ptr(tmp);
     return result;
 }

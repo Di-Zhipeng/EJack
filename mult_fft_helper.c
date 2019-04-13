@@ -15,6 +15,7 @@
 
 
 static long double complex cap1[CALSTACK_NBYTES_MAX], cap2[CALSTACK_NBYTES_MAX];
+static size_t last_used_length;
 
 size_t align_p2(const Udbyte *seq1, const Udbyte *seq2, size_t len1, size_t len2) {
     size_t roof = 1;
@@ -28,7 +29,7 @@ size_t align_p2(const Udbyte *seq1, const Udbyte *seq2, size_t len1, size_t len2
     for (size_t i = 0; i < len2; ++i) {
         cap2[i] = CMPLX(seq2[i], 0);
     }
-    return roof;
+    return last_used_length = roof;
 }
 
 void bit_rev_shuffle(long double complex *val, size_t len, unsigned int64 *table) {
@@ -91,7 +92,7 @@ Uldbyte result_copy(Uldbyte *tar, size_t len) {
         carry = tar[i] / CALSTACK_UDBYTE_MAX;
         tar[i] %= CALSTACK_UDBYTE_MAX;
     }
-    memset(cap1, 0, CALSTACK_NBYTES_MAX * sizeof(long double complex));
-    memset(cap2, 0, CALSTACK_NBYTES_MAX * sizeof(long double complex));
+    memset(cap1, 0, last_used_length * sizeof(long double complex));   // Reinitialize the fft arrays
+    memset(cap2, 0, last_used_length * sizeof(long double complex));
     return carry;
 }
